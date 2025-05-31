@@ -1,13 +1,31 @@
 from flask import Flask, request
+from werkzeug.middleware.proxy_fix import ProxyFix
 import os
+from datetime import datetime
 
 app = Flask(__name__)
 
+# Trust the proxy to get real IP
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1)
+
+LOG_FILE = "ip_logs.txt"  # File to store IP logs
+
 @app.route('/')
 def home():
-    # Get IP from headers if behind proxy, fallback to remote_addr
-    ip = request.headers.get('X-Forwarded-For', request.remote_addr)
-    print(f"New visitor IP: {ip}")
+    ip = request.remote_addr
+    timestamp = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
+    log_entry = f"{timestamp} - IP: {ip}\n"
+
+    # Print to console (Render Logs)
+    print(log_entry.strip())
+
+    # Save to file (local filesystem - ephemeral on Render)
+    try:
+        with open(LOG_FILE, "a") as f:
+            f.write(log_entry)
+    except Exception as e:
+        print(f"Error writing to log file: {e}")
+
     return f"Your IP address is: {ip}"
 
 if __name__ == "__main__":
