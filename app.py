@@ -5,8 +5,9 @@ app = Flask(__name__)
 
 @app.route('/')
 def home():
-    ip = request.remote_addr
-    print(f"New visitor IP: {ip}")  # Log IP to console (visible in Render logs)
+    # Get IP from headers if behind proxy, fallback to remote_addr
+    ip = request.headers.get('X-Forwarded-For', request.remote_addr)
+    print(f"New visitor IP: {ip}")
     return f"Your IP address is: {ip}"
 
 if __name__ == "__main__":
