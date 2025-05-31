@@ -1,22 +1,13 @@
 from flask import Flask, request
-from datetime import datetime
+import os
 
 app = Flask(__name__)
 
 @app.route('/')
-def log_ip():
-    ip = request.headers.get('X-Forwarded-For', request.remote_addr)
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    
-    with open("ip_logs.txt", "a") as f:
-        f.write(f"{timestamp} - {ip}\n")
-    
-    return f"Hello! Your IP {ip} has been logged."
+def home():
+    ip = request.remote_addr
+    return f"Your IP address is: {ip}"
 
-@app.route('/logs')
-def view_logs():
-    try:
-        with open("ip_logs.txt", "r") as f:
-            return f"<pre>{f.read()}</pre>"
-    except FileNotFoundError:
-        return "No logs yet."
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))  # Required for Render
+    app.run(host="0.0.0.0", port=port)
